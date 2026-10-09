@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Equipay — Split Smart, Spend Safe</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <main id="app">
+      <header class="topbar">
+        <h1>Equipay</h1>
+        <p class="muted">Split smart. Spend safe.</p>
+      </header>
+
+      <!-- ONBOARDING -->
+      <section class="card" id="onboarding">
+        <p class="eyebrow">LET'S GET STARTED</p>
+        <h2>How will you use Equipay?</h2>
+        <p class="muted">
+          Choose a profile to personalize your budget and categories.
+        </p>
+
+        <form id="profileForm">
+          <label for="userName">Your name</label>
+          <input
+            id="userName"
+            type="text"
+            maxlength="60"
+            placeholder="Enter your name"
+            required
+          />
+
+          <label for="persona">Choose your profile</label>
+          <select id="persona" required>
+            <option value="student">Student</option>
+            <option value="personal">Personal Finance</option>
+            <option value="business">Small Business</option>
+          </select>
+
+          <label for="budget">Monthly budget (₹)</label>
+          <input
+            id="budget"
+            type="number"
+            min="1"
+            max="100000000"
+            step="0.01"
+            value="10000"
+            required
+          />
+
+          <button type="submit" id="createProfileBtn">Create my profile</button>
+          <p id="profileStatus" role="status"></p>
+        </form>
+      </section>
+
+      <!-- WELCOME -->
+      <section class="card hidden" id="welcome">
+        <p class="eyebrow">PROFILE CREATED</p>
+        <h2 id="welcomeTitle"></h2>
+        <p id="welcomeDescription" class="muted"></p>
+
+        <h3>Your default categories</h3>
+        <div id="categoryList" class="chips"></div>
+        <p id="budgetSummary"></p>
+
+        <button id="backBtn" class="secondary" type="button">
+          Create another profile
+        </button>
+      </section>
+
+      <!-- STEP 6: DASHBOARD -->
+      <section class="card hidden" id="dashboard">
+        <div class="dashboard-heading">
+          <div>
+            <p class="eyebrow">YOUR MONEY OVERVIEW</p>
+            <h2 id="dashboardGreeting">Your Dashboard</h2>
+            <p id="dashboardPersona" class="muted"></p>
+          </div>
+
+          <button id="switchProfileBtn" class="secondary" type="button">
+            Switch profile
+          </button>
+        </div>
+
+        <!-- SUMMARY CARDS -->
+        <div class="dashboard-grid">
+          <article class="stat-card">
+            <p>Monthly budget</p>
+            <h3 id="budgetValue">₹0</h3>
+          </article>
+
+          <article class="stat-card">
+            <p>Your spending</p>
+            <h3 id="spentValue">₹0</h3>
+          </article>
+
+          <article class="stat-card">
+            <p>You owe</p>
+            <h3 id="oweValue">₹0</h3>
+          </article>
+
+          <article class="stat-card">
+            <p>You're owed</p>
+            <h3 id="owedValue">₹0</h3>
+          </article>
+        </div>
+
+        <!-- BUDGET REMAINING -->
+        <article class="card inner-card">
+          <div class="section-heading">
+            <h3>Budget remaining</h3>
+            <span id="remainingValue">₹0</span>
+          </div>
+
+          <div class="progress-track">
+            <div id="budgetProgress" class="progress-fill"></div>
+          </div>
+
+          <p id="budgetMessage" class="muted"></p>
+        </article>
+
+        <!-- STEP 7: ADD EXPENSE -->
+        <article class="card inner-card" id="addExpenseCard">
+          <h3>Add a new expense</h3>
+          <p class="muted">Record a purchase and split it with your group.</p>
+
+          <form id="expenseForm">
+            <label for="expenseTitle">Expense name</label>
+            <input
+              id="expenseTitle"
+              type="text"
+              maxlength="100"
+              placeholder="e.g. Groceries, movie night"
+              required
+            />
+
+            <label for="expenseAmount">Total amount (₹)</label>
+            <input
+              id="expenseAmount"
+              type="number"
+              min="0.01"
+              max="100000000"
+              step="0.01"
+              placeholder="Enter amount"
+              required
+            />
+
+            <label for="expenseCategory">Category</label>
+            <select id="expenseCategory" required></select>
+
+            <label for="expensePayer">Who paid?</label>
+            <select id="expensePayer" required></select>
+
+            <fieldset id="participantFields">
+              <legend>Split between</legend>
+              <p class="muted">Select everyone sharing this expense.</p>
+              <div id="participantList"></div>
+            </fieldset>
+
+            <p id="splitPreview" class="muted"></p>
+
+            <button type="submit" id="saveExpenseBtn">Save expense</button>
+            <p id="expenseStatus" role="status"></p>
+          </form>
+        </article>
+
+        <!-- RECENT EXPENSES -->
+        <article class="card inner-card" id="recentExpensesCard">
+          <div class="section-heading">
+            <h3>Recent expenses</h3>
+            <span id="expenseCount" class="muted">0 expenses</span>
+          </div>
+
+          <div id="recentExpenses">
+            <p class="muted">No expenses recorded yet.</p>
+          </div>
+        </article>
+
+        <p id="dashboardStatus" class="muted" role="status"></p>
+      </section>
+
+      <!-- DEVELOPER TOOLS -->
+      <details class="card">
+        <summary>Developer tools</summary>
+        <p class="muted">For testing and hackathon demos.</p>
+
+        <button id="seedBtn" type="button">Load demo data</button>
+
+        <button id="clearBtn" class="secondary" type="button">
+          Clear all data
+        </button>
+
+        <p id="status" role="status"></p>
+        <div id="debug"></div>
+      </details>
+    </main>
+
+    <div id="safeCard" class="card"></div>
+    <div id="simplifyCard" class="card"></div>
+    <div id="payCard" class="card"></div>
+
+    <!-- FIREBASE AND APPLICATION SCRIPTS -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="equipay.js"></script>
+    <script src="simplify.js"></script>
+    <script src="safe.js"></script>
+    <script src="pay.js"></script>
+    <script src="seed.js"></script>
+    <script src="onboarding.js"></script>
+    <script src="expenses.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
