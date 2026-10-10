@@ -133,3 +133,9 @@ function listen(collectionName, callback) {
     callback(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
   });
 }
+// Your own share of all personal-scope shared expenses (business excluded)
+function myShareSpent(expenses, uid) {
+  return expenses
+    .filter((e) => e.module !== "business")
+    .reduce((t, e) => t + (Number(e.shares && e.shares[uid]) || 0), 0);
+}

@@ -2,216 +2,714 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Equipay — Split Smart, Spend Safe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f7f7f2" />
+    <meta
+      name="description"
+      content="Equipay helps you split expenses, manage budgets and settle up with ease."
+    />
+    <title>Equipay — Split smart. Spend safe.</title>
     <link rel="stylesheet" href="style.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='12' fill='%23777e65'/%3E%3Cpath d='M33.5 29.5A10.5 10.5 0 1 1 34.5 22M17 24h15' fill='none' stroke='%23f7f7f2' stroke-width='3.4' stroke-linecap='round'/%3E%3C/svg%3E"
+    />
   </head>
 
   <body>
-    <main id="app">
-      <header class="topbar">
-        <h1>Equipay</h1>
-        <p class="muted">Split smart. Spend safe.</p>
-      </header>
+    <div class="app-shell" id="app">
+      <!-- SIDEBAR -->
+      <aside class="sidebar" id="sidebar">
+        <a href="#" class="brand" data-page="dashboard">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+              <rect width="48" height="48" rx="12" fill="#777e65" />
+              <path
+                d="M33.5 29.5A10.5 10.5 0 1 1 34.5 22"
+                fill="none"
+                stroke="#f7f7f2"
+                stroke-width="3.4"
+                stroke-linecap="round"
+              />
+              <path
+                d="M17 24h15"
+                stroke="#f7f7f2"
+                stroke-width="3.4"
+                stroke-linecap="round"
+              />
+              <path
+                d="M29 17.5l5.5-5.5M30 12h4.5v4.5"
+                fill="none"
+                stroke="#dfe7cc"
+                stroke-width="2.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </span>
+          <span class="brand-copy">
+            <strong>equipay</strong>
+            <small>Split smart. Spend safe.</small>
+          </span>
+        </a>
 
-      <!-- ONBOARDING -->
-      <section class="card" id="onboarding">
-        <p class="eyebrow">LET'S GET STARTED</p>
-        <h2>How will you use Equipay?</h2>
-        <p class="muted">
-          Choose a profile to personalize your budget and categories.
-        </p>
+        <div class="sidebar-section">
+          <p class="nav-label">WORKSPACE</p>
+          <nav class="main-nav" aria-label="Main navigation">
+            <button type="button" class="nav-item active" data-page="dashboard">
+              <span class="nav-icon">⌂</span>
+              <span>Dashboard</span>
+            </button>
+            <button type="button" class="nav-item" data-page="expenses">
+              <span class="nav-icon">↗</span>
+              <span>Expenses</span>
+            </button>
+            <button type="button" class="nav-item" data-page="settle">
+              <span class="nav-icon">⇄</span>
+              <span>Settle up</span>
+            </button>
+            <button type="button" class="nav-item" data-page="reminders">
+              <span class="nav-icon">♧</span>
+              <span>Reminders</span>
+            </button>
+            <button type="button" class="nav-item" data-page="modules">
+              <span class="nav-icon">◎</span>
+              <span>Use case</span>
+            </button>
+          </nav>
+        </div>
 
-        <form id="profileForm">
-          <label for="userName">Your name</label>
-          <input
-            id="userName"
-            type="text"
-            maxlength="60"
-            placeholder="Enter your name"
-            required
-          />
-
-          <label for="persona">Choose your profile</label>
-          <select id="persona" required>
-            <option value="student">Student</option>
-            <option value="personal">Personal Finance</option>
-            <option value="business">Small Business</option>
-          </select>
-
-          <label for="budget">Monthly budget (₹)</label>
-          <input
-            id="budget"
-            type="number"
-            min="1"
-            max="100000000"
-            step="0.01"
-            value="10000"
-            required
-          />
-
-          <button type="submit" id="createProfileBtn">Create my profile</button>
-          <p id="profileStatus" role="status"></p>
-        </form>
-      </section>
-
-      <!-- WELCOME -->
-      <section class="card hidden" id="welcome">
-        <p class="eyebrow">PROFILE CREATED</p>
-        <h2 id="welcomeTitle"></h2>
-        <p id="welcomeDescription" class="muted"></p>
-
-        <h3>Your default categories</h3>
-        <div id="categoryList" class="chips"></div>
-        <p id="budgetSummary"></p>
-
-        <button id="backBtn" class="secondary" type="button">
-          Create another profile
-        </button>
-      </section>
-
-      <!-- STEP 6: DASHBOARD -->
-      <section class="card hidden" id="dashboard">
-        <div class="dashboard-heading">
-          <div>
-            <p class="eyebrow">YOUR MONEY OVERVIEW</p>
-            <h2 id="dashboardGreeting">Your Dashboard</h2>
-            <p id="dashboardPersona" class="muted"></p>
-          </div>
-
-          <button id="switchProfileBtn" class="secondary" type="button">
-            Switch profile
+        <div class="sidebar-bottom">
+          <button type="button" class="nav-item" data-page="about">
+            <span class="nav-icon">ⓘ</span>
+            <span>About Equipay</span>
           </button>
+
+          <div class="sidebar-account" id="sidebarAccount">
+            <div class="avatar" id="accountAvatar">E</div>
+            <div class="account-copy">
+              <strong id="accountName">Your account</strong>
+              <small id="accountPersona">Personal finances</small>
+            </div>
+            <button
+              type="button"
+              class="icon-button"
+              id="accountMenuBtn"
+              aria-label="Account menu"
+              aria-expanded="false"
+            >
+              ⋯
+            </button>
+          </div>
+
+          <div class="account-menu hidden" id="accountMenu">
+            <button type="button" data-page="account">Account settings</button>
+            <button type="button" id="loginNavBtn">Log in</button>
+            <button type="button" id="logoutBtn">Log out</button>
+          </div>
         </div>
+      </aside>
 
-        <!-- SUMMARY CARDS -->
-        <div class="dashboard-grid">
-          <article class="stat-card">
-            <p>Monthly budget</p>
-            <h3 id="budgetValue">₹0</h3>
-          </article>
-
-          <article class="stat-card">
-            <p>Your spending</p>
-            <h3 id="spentValue">₹0</h3>
-          </article>
-
-          <article class="stat-card">
-            <p>You owe</p>
-            <h3 id="oweValue">₹0</h3>
-          </article>
-
-          <article class="stat-card">
-            <p>You're owed</p>
-            <h3 id="owedValue">₹0</h3>
-          </article>
-        </div>
-
-        <!-- BUDGET REMAINING -->
-        <article class="card inner-card">
-          <div class="section-heading">
-            <h3>Budget remaining</h3>
-            <span id="remainingValue">₹0</span>
+      <!-- MAIN AREA -->
+      <div class="main-area">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button
+              type="button"
+              class="icon-button mobile-menu-btn"
+              id="mobileMenuBtn"
+              aria-label="Toggle navigation"
+            >
+              ☰
+            </button>
+            <div>
+              <p class="topbar-eyebrow">YOUR PERSONAL MONEY SPACE</p>
+              <h1 class="topbar-title" id="pageTitle">Dashboard</h1>
+            </div>
           </div>
-
-          <div class="progress-track">
-            <div id="budgetProgress" class="progress-fill"></div>
+          <div class="topbar-actions">
+            <span class="today-label" id="todayLabel"></span>
+            <button
+              type="button"
+              class="icon-button account-shortcut"
+              id="accountShortcutBtn"
+              aria-label="Open account"
+            >
+              <span id="topbarAvatar">☺</span>
+            </button>
           </div>
+        </header>
 
-          <p id="budgetMessage" class="muted"></p>
-        </article>
+        <main class="page-content" id="pageContent">
+          <!-- LOGIN / SIGN-UP -->
+          <section class="page-view hidden" id="loginPage" data-page-view>
+            <div class="auth-layout">
+              <div class="auth-intro">
+                <span class="eyebrow">A LITTLE MORE CLARITY</span>
+                <h2>Your money, without the mental load.</h2>
+                <p class="muted">
+                  Track shared expenses, understand your budget and settle up
+                  with less stress.
+                </p>
+              </div>
 
-        <!-- STEP 7: ADD EXPENSE -->
-        <article class="card inner-card" id="addExpenseCard">
-          <h3>Add a new expense</h3>
-          <p class="muted">Record a purchase and split it with your group.</p>
+              <article class="card auth-card">
+                <div class="auth-heading">
+                  <h2 id="authTitle">Welcome back!</h2>
+                  <p class="muted" id="authDescription">
+                    Log in to continue to your Equipay account.
+                  </p>
+                </div>
 
-          <form id="expenseForm">
-            <label for="expenseTitle">Expense name</label>
-            <input
-              id="expenseTitle"
-              type="text"
-              maxlength="100"
-              placeholder="e.g. Groceries, movie night"
-              required
-            />
+                <form id="authForm">
+                  <label for="authEmail">Email address</label>
+                  <input
+                    id="authEmail"
+                    type="email"
+                    autocomplete="email"
+                    placeholder="you@example.com"
+                    required
+                  />
 
-            <label for="expenseAmount">Total amount (₹)</label>
-            <input
-              id="expenseAmount"
-              type="number"
-              min="0.01"
-              max="100000000"
-              step="0.01"
-              placeholder="Enter amount"
-              required
-            />
+                  <label for="authPassword">Password</label>
+                  <input
+                    id="authPassword"
+                    type="password"
+                    autocomplete="current-password"
+                    minlength="6"
+                    placeholder="Enter your password"
+                    required
+                  />
 
-            <label for="expenseCategory">Category</label>
-            <select id="expenseCategory" required></select>
+                  <div id="authNameField" class="hidden">
+                    <label for="authName">Your name</label>
+                    <input
+                      id="authName"
+                      type="text"
+                      maxlength="60"
+                      autocomplete="name"
+                      placeholder="What should we call you?"
+                    />
+                  </div>
 
-            <label for="expensePayer">Who paid?</label>
-            <select id="expensePayer" required></select>
+                  <button
+                    type="submit"
+                    class="primary-button full-width"
+                    id="authSubmitBtn"
+                  >
+                    Log in
+                  </button>
+                  <p id="authStatus" class="form-status" role="status"></p>
+                </form>
 
-            <fieldset id="participantFields">
-              <legend>Split between</legend>
-              <p class="muted">Select everyone sharing this expense.</p>
-              <div id="participantList"></div>
-            </fieldset>
+                <p class="auth-switch muted">
+                  <span id="authSwitchText">New to Equipay?</span>
+                  <button type="button" class="text-button" id="authSwitchBtn">
+                    Create an account
+                  </button>
+                </p>
+                <button type="button" class="text-button" id="backToAppBtn">
+                  Continue without logging in
+                </button>
+              </article>
+            </div>
+          </section>
 
-            <p id="splitPreview" class="muted"></p>
+          <!-- ONBOARDING -->
+          <section class="page-view" id="onboarding" data-page-view>
+            <div class="welcome-banner">
+              <div class="welcome-copy">
+                <span class="eyebrow">LET'S GET STARTED</span>
+                <h2>Make room for the good stuff. 🌱</h2>
+                <p class="muted">
+                  Tell us how you'll use Equipay so we can personalize your
+                  experience.
+                </p>
+              </div>
+              <div class="welcome-decoration" aria-hidden="true">✳</div>
+            </div>
 
-            <button type="submit" id="saveExpenseBtn">Save expense</button>
-            <p id="expenseStatus" role="status"></p>
-          </form>
-        </article>
+            <article class="card onboarding-card">
+              <h3>Let's make this yours</h3>
+              <p class="muted">You can change your preferences later.</p>
 
-        <!-- RECENT EXPENSES -->
-        <article class="card inner-card" id="recentExpensesCard">
-          <div class="section-heading">
-            <h3>Recent expenses</h3>
-            <span id="expenseCount" class="muted">0 expenses</span>
-          </div>
+              <form id="profileForm">
+                <label for="userName">What should we call you?</label>
+                <input
+                  id="userName"
+                  type="text"
+                  maxlength="60"
+                  autocomplete="given-name"
+                  placeholder="Enter your name"
+                  required
+                />
+                <label for="userUpi"
+                  >UPI ID (optional, so friends can pay you)</label
+                >
+                <input
+                  id="userUpi"
+                  type="text"
+                  maxlength="60"
+                  placeholder="name@bank"
+                />
 
-          <div id="recentExpenses">
-            <p class="muted">No expenses recorded yet.</p>
-          </div>
-        </article>
+                <label for="persona">Which best describes you?</label>
+                <select id="persona" required>
+                  <option value="student">🎓 Student</option>
+                  <option value="personal">🌿 Personal Finance</option>
+                  <option value="business">🪴 Small Business</option>
+                </select>
 
-        <p id="dashboardStatus" class="muted" role="status"></p>
-      </section>
+                <label for="budget">Monthly budget (₹)</label>
+                <input
+                  id="budget"
+                  type="number"
+                  min="1"
+                  max="100000000"
+                  step="1"
+                  inputmode="numeric"
+                  placeholder="e.g. 10000"
+                  required
+                />
+                <p class="field-hint">
+                  Enter your planned monthly spending limit.
+                </p>
 
-      <!-- DEVELOPER TOOLS -->
-      <details class="card">
-        <summary>Developer tools</summary>
-        <p class="muted">For testing and hackathon demos.</p>
+                <button
+                  type="submit"
+                  class="primary-button"
+                  id="createProfileBtn"
+                >
+                  Create my profile →
+                </button>
+                <p id="profileStatus" class="form-status" role="status"></p>
+              </form>
+            </article>
+          </section>
 
-        <button id="seedBtn" type="button">Load demo data</button>
+          <!-- WELCOME SUCCESS -->
+          <section class="page-view hidden" id="welcome" data-page-view>
+            <article class="card welcome-success-card">
+              <span class="success-mark">✓</span>
+              <p class="eyebrow">YOUR SPACE IS READY</p>
+              <h2 id="welcomeTitle"></h2>
+              <p id="welcomeDescription" class="muted"></p>
+              <h3>Your default categories</h3>
+              <div id="categoryList" class="chips"></div>
+              <p id="budgetSummary"></p>
+              <button id="backBtn" class="primary-button" type="button">
+                Go to dashboard →
+              </button>
+            </article>
+          </section>
 
-        <button id="clearBtn" class="secondary" type="button">
-          Clear all data
-        </button>
+          <!-- DASHBOARD -->
+          <section class="page-view hidden" id="dashboard" data-page-view>
+            <div class="dashboard-welcome">
+              <div>
+                <span class="eyebrow">YOUR MONEY OVERVIEW</span>
+                <h2 id="dashboardGreeting">Hey there! 👋</h2>
+                <p id="dashboardPersona" class="muted"></p>
+              </div>
+              <button
+                type="button"
+                class="secondary-button"
+                id="switchProfileBtn"
+              >
+                Switch profile
+              </button>
+            </div>
 
-        <p id="status" role="status"></p>
-        <div id="debug"></div>
-      </details>
-    </main>
+            <div class="dashboard-primary-grid">
+              <article class="card safe-to-spend-card" id="safeSpendSummary">
+                <div class="safe-card-top">
+                  <div>
+                    <span class="eyebrow">A LITTLE SPENDING CLARITY</span>
+                    <h3>Safe to spend</h3>
+                  </div>
+                  <span class="soft-icon">🌱</span>
+                </div>
+                <p class="safe-amount" id="remainingValue">₹0</p>
+                <p class="safe-description" id="budgetMessage">
+                  Your budget overview will appear here.
+                </p>
+                <div class="progress-track" aria-label="Budget usage">
+                  <div
+                    id="budgetProgress"
+                    class="progress-fill"
+                    style="width: 0%"
+                  ></div>
+                </div>
+                <div class="budget-legend">
+                  <span>Monthly limit</span>
+                  <strong id="budgetValue">₹0</strong>
+                </div>
+              </article>
 
-    <div id="safeCard" class="card"></div>
-    <div id="simplifyCard" class="card"></div>
-    <div id="payCard" class="card"></div>
+              <article class="card spending-card">
+                <div class="section-heading">
+                  <div>
+                    <span class="eyebrow">THIS MONTH</span>
+                    <h3>Your spending</h3>
+                  </div>
+                  <span class="soft-icon">☁</span>
+                </div>
+                <p class="metric-value" id="spentValue">₹0</p>
+                <p class="muted small-copy">Your allocated share of expenses</p>
+                <div class="mini-stat-row">
+                  <span>You owe</span><strong id="oweValue">₹0</strong>
+                </div>
+                <div class="mini-stat-row">
+                  <span>You're owed</span><strong id="owedValue">₹0</strong>
+                </div>
+              </article>
+            </div>
 
-    <!-- FIREBASE AND APPLICATION SCRIPTS -->
+            <!-- QUICK ACTIONS -->
+            <section class="section-block">
+              <div class="section-heading">
+                <div>
+                  <span class="eyebrow">KEEP THINGS MOVING</span>
+                  <h3>Quick actions</h3>
+                </div>
+              </div>
+
+              <div class="quick-actions">
+                <button
+                  type="button"
+                  class="quick-action-card"
+                  data-page="expenses"
+                  data-action="add-expense"
+                >
+                  <span class="quick-action-icon lavender">＋</span>
+                  <span>
+                    <strong>Add an expense</strong>
+                    <small>Record and split a purchase</small>
+                  </span>
+                  <span class="action-arrow">→</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="quick-action-card"
+                  data-page="settle"
+                >
+                  <span class="quick-action-icon sage">⇄</span>
+                  <span>
+                    <strong>Settle up</strong>
+                    <small>See who owes whom</small>
+                  </span>
+                  <span class="action-arrow">→</span>
+                </button>
+              </div>
+            </section>
+
+            <!-- RECENT EXPENSES -->
+            <section class="section-block">
+              <div class="section-heading">
+                <div>
+                  <span class="eyebrow">THE LITTLE THINGS ADD UP</span>
+                  <h3>Recent expenses</h3>
+                </div>
+                <button type="button" class="text-button" data-page="expenses">
+                  View all →
+                </button>
+              </div>
+
+              <article class="card recent-expenses-card">
+                <div class="recent-expenses-heading">
+                  <p class="muted">Your latest activity</p>
+                  <span id="expenseCount" class="count-pill">0 expenses</span>
+                </div>
+                <div id="recentExpenses">
+                  <p class="muted empty-state">
+                    Nothing here yet. Add your first expense to get started.
+                  </p>
+                </div>
+              </article>
+            </section>
+
+            <p id="dashboardStatus" class="form-status" role="status"></p>
+          </section>
+
+          <!-- EXPENSES -->
+          <section class="page-view hidden" id="expensesPage" data-page-view>
+            <div class="page-intro">
+              <span class="eyebrow">EVERY LITTLE THING, IN ONE PLACE</span>
+              <h2>Your expenses</h2>
+              <p class="muted">
+                Keep track of shared purchases without the mental maths.
+              </p>
+            </div>
+
+            <div class="page-toolbar">
+              <div>
+                <h3>All expenses</h3>
+                <p class="muted">Add a purchase or review recent activity.</p>
+              </div>
+              <button
+                type="button"
+                class="primary-button"
+                id="openExpenseFormBtn"
+              >
+                ＋ Add expense
+              </button>
+            </div>
+
+            <article class="card inner-card" id="addExpenseCard">
+              <div class="section-heading">
+                <div>
+                  <span class="eyebrow">NEW TRANSACTION</span>
+                  <h3>Add a new expense</h3>
+                </div>
+                <button
+                  type="button"
+                  class="icon-button"
+                  id="closeExpenseFormBtn"
+                  aria-label="Hide expense form"
+                >
+                  ×
+                </button>
+              </div>
+
+              <p class="muted">
+                Enter the details and choose who shares the cost.
+              </p>
+
+              <form id="expenseForm">
+                <div class="form-grid">
+                  <div class="form-field full-span">
+                    <label for="expenseTitle">What was it for?</label>
+                    <input
+                      id="expenseTitle"
+                      type="text"
+                      maxlength="100"
+                      placeholder="e.g. Groceries, movie night"
+                      required
+                    />
+                  </div>
+
+                  <div class="form-field">
+                    <label for="expenseAmount">Total amount (₹)</label>
+                    <input
+                      id="expenseAmount"
+                      type="number"
+                      min="0.01"
+                      max="100000000"
+                      step="0.01"
+                      inputmode="decimal"
+                      placeholder="e.g. 850"
+                      required
+                    />
+                  </div>
+
+                  <div class="form-field">
+                    <label for="expenseCategory">Category</label>
+                    <select id="expenseCategory" required></select>
+                  </div>
+
+                  <div class="form-field full-span">
+                    <label for="expensePayer">Who paid?</label>
+                    <select id="expensePayer" required></select>
+                  </div>
+                </div>
+
+                <fieldset id="participantFields" class="participant-fieldset">
+                  <legend>Who's sharing this?</legend>
+                  <p class="muted small-copy">
+                    Select everyone who should share the expense.
+                  </p>
+                  <div id="participantList"></div>
+                </fieldset>
+
+                <div class="split-preview-panel">
+                  <span class="muted">Estimated split</span>
+                  <p id="splitPreview">
+                    Select participants to preview the split.
+                  </p>
+                </div>
+
+                <div class="form-actions">
+                  <button
+                    type="submit"
+                    class="primary-button"
+                    id="saveExpenseBtn"
+                  >
+                    Save expense
+                  </button>
+                </div>
+                <p id="expenseStatus" class="form-status" role="status"></p>
+              </form>
+            </article>
+
+            <article class="card inner-card">
+              <div class="section-heading">
+                <h3>Recent activity</h3>
+                <span id="allExpensesCount" class="count-pill">0 expenses</span>
+              </div>
+              <div id="allExpensesList">
+                <p class="muted empty-state">
+                  Your recorded expenses will appear here.
+                </p>
+              </div>
+            </article>
+          </section>
+
+          <!-- SETTLE UP -->
+          <section class="page-view hidden" id="settlePage" data-page-view>
+            <div class="page-intro">
+              <span class="eyebrow">NO AWKWARD MATHS</span>
+              <h2>Settle up, simply.</h2>
+              <p class="muted">
+                See the simplest suggested transfers for your group.
+              </p>
+            </div>
+            <div id="simplifyCard" class="card feature-card"></div>
+            <div id="payCard" class="card feature-card"></div>
+          </section>
+
+          <!-- REMINDERS -->
+          <section class="page-view hidden" id="remindersPage" data-page-view>
+            <div class="page-intro">
+              <span class="eyebrow">A GENTLE NUDGE</span>
+              <h2>Reminders</h2>
+              <p class="muted">
+                Stay on top of pending payments, without the pressure.
+              </p>
+            </div>
+            <div id="remindCard" class="card feature-card"></div>
+          </section>
+
+          <!-- ABOUT -->
+          <section class="page-view hidden" id="aboutPage" data-page-view>
+            <article class="card about-hero">
+              <span class="eyebrow">MEET EQUIPAY</span>
+              <h2>Money conversations can feel lighter. 🌿</h2>
+              <p>
+                Equipay helps friends, roommates and small groups understand
+                shared expenses, simplify debts and keep personal budgets in
+                view.
+              </p>
+            </article>
+
+            <div class="about-grid">
+              <article class="card about-card">
+                <span class="soft-icon">↗</span>
+                <h3>Know where it goes</h3>
+                <p class="muted">Record expenses and understand your share.</p>
+              </article>
+              <article class="card about-card">
+                <span class="soft-icon">⇄</span>
+                <h3>Make settling simpler</h3>
+                <p class="muted">
+                  See who owes whom and reduce unnecessary transfers.
+                </p>
+              </article>
+              <article class="card about-card">
+                <span class="soft-icon">♡</span>
+                <h3>Spend with more clarity</h3>
+                <p class="muted">
+                  Keep your spending and outstanding obligations in view.
+                </p>
+              </article>
+            </div>
+          </section>
+
+          <!-- ACCOUNT -->
+          <section class="page-view hidden" id="accountPage" data-page-view>
+            <div class="page-intro">
+              <span class="eyebrow">YOUR SPACE</span>
+              <h2>Account</h2>
+              <p class="muted">Manage your Equipay profile.</p>
+            </div>
+
+            <article class="card account-card">
+              <div class="account-profile-header">
+                <div class="avatar avatar-large" id="accountPageAvatar">E</div>
+                <div>
+                  <h3 id="accountPageName">Your account</h3>
+                  <p class="muted" id="accountPageEmail">Guest profile</p>
+                </div>
+              </div>
+
+              <div class="account-details">
+                <div class="mini-stat-row">
+                  <span>Profile type</span>
+                  <strong id="accountPagePersona">Not selected</strong>
+                </div>
+                <div class="mini-stat-row">
+                  <span>Account status</span>
+                  <strong id="accountPageStatus">Guest</strong>
+                </div>
+              </div>
+
+              <button type="button" class="primary-button" id="accountLoginBtn">
+                Log in or create an account
+              </button>
+              <button
+                type="button"
+                class="secondary-button"
+                id="accountLogoutBtn"
+              >
+                Log out
+              </button>
+            </article>
+          </section>
+
+          <!-- PROFILE MODULES -->
+          <section class="page-view hidden" id="modulesPage" data-page-view>
+            <div class="page-intro">
+              <span class="eyebrow">YOUR WAY OF MANAGING MONEY</span>
+              <h2>Your use case</h2>
+              <p class="muted">
+                Personalize your experience for the way you use Equipay.
+              </p>
+            </div>
+            <div id="modulesCard" class="card feature-card"></div>
+          </section>
+
+          <!-- DEVELOPER TOOLS -->
+          <details class="card developer-tools" id="developerTools">
+            <summary>Developer tools</summary>
+            <p class="muted">For testing and hackathon demonstrations.</p>
+            <div class="developer-actions">
+              <button id="seedBtn" type="button" class="secondary-button">
+                Load demo data
+              </button>
+              <button id="clearBtn" type="button" class="danger-button">
+                Clear all data
+              </button>
+            </div>
+            <p id="status" class="form-status" role="status"></p>
+            <div id="safeCard" class="card"></div>
+            <div id="debug"></div>
+          </details>
+        </main>
+
+        <footer class="app-footer">
+          <span>Made for calmer money moments ♡</span>
+          <span>Equipay · Split smart. Spend safe.</span>
+        </footer>
+      </div>
+    </div>
+
+    <!-- FIREBASE COMPAT SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+    <!-- APP FILES -->
     <script src="firebase-config.js"></script>
     <script src="equipay.js"></script>
     <script src="simplify.js"></script>
     <script src="safe.js"></script>
     <script src="pay.js"></script>
+    <script src="modules.js"></script>
+    <script src="remind.js"></script>
     <script src="seed.js"></script>
     <script src="onboarding.js"></script>
     <script src="expenses.js"></script>
     <script src="app.js"></script>
+    <script src="auth.js"></script>
   </body>
 </html>

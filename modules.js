@@ -1,39 +1,77 @@
-// modules.js  (uses the same "viewing as" user as the other cards)
+// modules.js
 (function () {
+  "use strict";
+
   let users = [];
-  const box = document.getElementById("modulesCard");
-  const getMe = () =>
-    localStorage.getItem("equipay_safe_user") || (users[0] && users[0].id);
+  let lastMsg = "";
+
+  const esc = (v) =>
+    String(v).replace(
+      /[&<>"']/g,
+      (c) =>
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[c],
+    );
+
+  const getMe = () => sessionStorage.getItem("equipayUserId") || "";
+  const labelOf = (m) => (PERSONAS[m] && PERSONAS[m].label) || m;
+  const catsFor = (m) =>
+    (window.personaSettings &&
+      window.personaSettings[m] &&
+      window.personaSettings[m].categories) ||
+    (PERSONAS[m] && PERSONAS[m].categories) ||
+    [];
+  const scopeOf = (m) =>
+    (window.personaSettings &&
+      window.personaSettings[m] &&
+      window.personaSettings[m].scope) ||
+    (PERSONAS[m] && PERSONAS[m].scope) ||
+    "personal";
 
   function render() {
+    const box = document.getElementById("modulesCard");
+    if (!box) return;
+
     const u = users.find((x) => x.id === getMe());
     if (!u) {
-      box.innerHTML = '<p class="muted">No user selected.</p>';
+      box.innerHTML = '<p class="muted">Select a profile first.</p>';
       return;
     }
-    const primary = u.primary || "student";
-    const mods = Array.from(new Set([...(u.modules || []), primary]));
 
-    const usecase = Object.entries(PERSONAS)
+    // Keep what the person was typing across live updates
+    const prevAmt = (document.getElementById("amtIn") || {}).value || "";
+    const prevCat = (document.getElementById("catSel") || {}).value || "";
+
+    const primary = PERSONAS[u.primary] ? u.primary : "student";
+    const mods = Array.from(new Set([...(u.modules || []), primary])).filter(
+      (m) => PERSONAS[m],
+    );
+
+    const usecase = Object.keys(PERSONAS)
       .map(
-        ([k, p]) =>
-          `<label><input type="radio" name="primary" value="${k}" ${k === primary ? "checked" : ""}> ${p.label}</label>`,
+        (k) =>
+          `<label><input type="radio" name="primary" value="${k}" ${k === primary ? "checked" : ""}> ${esc(labelOf(k))}</label>`,
       )
       .join("<br>");
 
-    const extras = Object.entries(PERSONAS)
+    const extras = Object.keys(PERSONAS)
       .map(
-        ([k, p]) =>
-          `<label><input type="checkbox" data-mod="${k}" ${mods.includes(k) ? "checked" : ""} ${k === primary ? "disabled" : ""}> ${p.label}</label>`,
+        (k) =>
+          `<label><input type="checkbox" data-mod="${k}" ${mods.includes(k) ? "checked" : ""} ${k === primary ? "disabled" : ""}> ${esc(labelOf(k))}</label>`,
       )
       .join("");
 
     const options = mods
       .map(
         (m) =>
-          `<optgroup label="${PERSONAS[m].label}">` +
-          PERSONAS[m].categories
-            .map((c) => `<option value="${m}|${c}">${c}</option>`)
+          `<optgroup label="${esc(labelOf(m))}">` +
+          catsFor(m)
+            .map((c) => `<option value="${m}|${esc(c)}">${esc(c)}</option>`)
             .join("") +
           `</optgroup>`,
       )
@@ -49,27 +87,39 @@
       <h3>Log spending</h3>
       <select id="catSel">${options}</select>
       <input id="amtIn" type="number" min="1" placeholder="Amount ₹">
-      <button id="logBtn">Add</button>
-      <p id="logMsg" class="muted"></p>
+      <button id="logBtn" type="button">Add</button>
+      <p id="logMsg" class="muted">${esc(lastMsg)}</p>
       ${
         mods.includes("business")
           ? `<div class="row"><span>Business spend this month</span><b>${rupees(u.businessSpentPaise || 0)}</b></div>
-           <p class="muted">Business spending is kept separate and doesn't reduce your personal Safe-to-spend.</p>`
+             <p class="muted">Business spending is kept separate and doesn't reduce your personal Safe-to-spend.</p>`
           : ""
       }`;
 
-    const ref = db.collection("users").doc(u.id);
+    const amt = document.getElementById("amtIn");
+    const cat = document.getElementById("catSel");
+    if (amt) amt.value = prevAmt;
+    if (cat && prevCat) cat.value = prevCat;
 
-    box
-      .querySelectorAll("input[name=primary]")
-      .forEach(
-        (r) =>
-          (r.onchange = () =>
-            ref.update({
+    const ref = db.collection("users").doc(u.id);
+    const fail = (e) => {
+      console.error(e);
+      lastMsg = "Could not save. Check your connection.";
+      render();
+    };
+
+    box.querySelectorAll("input[name=primary]").forEach(
+      (r) =>
+        (r.onchange = () =>
+          ref
+            .update({
               primary: r.value,
               modules: Array.from(new Set([...mods, r.value])),
-            })),
-      );
+              scope: scopeOf(r.value),
+              categories: catsFor(r.value),
+            })
+            .catch(fail)),
+    );
 
     box.querySelectorAll("[data-mod]").forEach(
       (c) =>
@@ -78,32 +128,46 @@
           const next = c.checked
             ? Array.from(new Set([...mods, m]))
             : mods.filter((x) => x !== m);
-          ref.update({ modules: next });
+          ref.update({ modules: next }).catch(fail);
         }),
     );
 
     document.getElementById("logBtn").onclick = async () => {
-      const [m] = document.getElementById("catSel").value.split("|");
+      const value = document.getElementById("catSel").value;
+      if (!value) {
+        lastMsg = "Pick a category.";
+        render();
+        return;
+      }
+      const m = value.split("|")[0];
       const paise = Math.round(
         parseFloat(document.getElementById("amtIn").value) * 100,
       );
       if (!paise || paise <= 0) {
-        document.getElementById("logMsg").textContent = "Enter an amount.";
+        lastMsg = "Enter an amount.";
+        render();
         return;
       }
       const field =
-        PERSONAS[m].scope === "business" ? "businessSpentPaise" : "spentPaise";
-      await ref.update({
-        [field]: firebase.firestore.FieldValue.increment(paise),
-      });
+        scopeOf(m) === "business" ? "businessSpentPaise" : "spentPaise";
+      try {
+        await ref.update({
+          [field]: firebase.firestore.FieldValue.increment(paise),
+        });
+        lastMsg = `Added ${rupees(paise)} to ${labelOf(m)}.`;
+        document.getElementById("amtIn").value = "";
+      } catch (e) {
+        fail(e);
+      }
     };
   }
 
+  window.addEventListener("equipay:user-changed", () => {
+    lastMsg = "";
+    render();
+  });
   listen("users", (d) => {
     users = d;
     render();
-  });
-  document.addEventListener("change", (e) => {
-    if (e.target.id === "safeUser") setTimeout(render, 0);
   });
 })();

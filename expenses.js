@@ -1,166 +1,378 @@
-const expenseForm = document.getElementById("expenseForm");
-const expenseStatus = document.getElementById("expenseStatus");
-const expenseCategory = document.getElementById("expenseCategory");
-const expensePayer = document.getElementById("expensePayer");
-const participantList = document.getElementById("participantList");
-const splitPreview = document.getElementById("splitPreview");
-const saveExpenseBtn = document.getElementById("saveExpenseBtn");
+/* =========================================
+   EQUIPAY — EXPENSE MANAGEMENT
+   ========================================= */
 
-function getCurrentUserId() {
-  return sessionStorage.getItem("equipayUserId");
-}
+(() => {
+  "use strict";
 
-function loadExpenseForm(users) {
-  const currentId = getCurrentUserId();
-  const currentUser = users.find((user) => user.id === currentId);
+  const $ = (id) => document.getElementById(id);
 
-  if (!currentUser) return;
+  const expenseForm = $("expenseForm");
+  const expenseStatus = $("expenseStatus");
+  const expenseCategory = $("expenseCategory");
+  const expensePayer = $("expensePayer");
+  const participantList = $("participantList");
+  const splitPreview = $("splitPreview");
+  const saveExpenseBtn = $("saveExpenseBtn");
+  const expenseAmount = $("expenseAmount");
 
-  // Load categories for the selected profile.
-  const categories = currentUser.categories || ["Other"];
-  expenseCategory.replaceChildren();
+  function getCurrentUserId() {
+    return sessionStorage.getItem("equipayUserId");
+  }
 
-  categories.forEach((category) => {
+  function getUsers() {
+    // Support either a global users array or an app state array.
+    if (Array.isArray(window.users)) return window.users;
+
+    if (typeof users !== "undefined" && Array.isArray(users)) {
+      return users;
+    }
+
+    return [];
+  }
+
+  function addPlaceholder(select, message) {
+    if (!select) return;
+
+    select.replaceChildren();
+
     const option = document.createElement("option");
-    option.value = category;
-    option.textContent = category;
-    expenseCategory.appendChild(option);
-  });
+    option.value = "";
+    option.textContent = message;
+    option.disabled = true;
+    option.selected = true;
 
-  // MVP: all available profiles form one demo group.
-  // Real group membership will be implemented separately.
-  expensePayer.replaceChildren();
-  participantList.replaceChildren();
-
-  users.forEach((user) => {
-    const payerOption = document.createElement("option");
-    payerOption.value = user.id;
-    payerOption.textContent = user.name || user.id;
-    expensePayer.appendChild(payerOption);
-
-    const label = document.createElement("label");
-    label.className = "participant-option";
-
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.value = user.id;
-    checkbox.name = "expenseParticipant";
-    checkbox.checked = user.id === currentId;
-
-    const name = document.createElement("span");
-    name.textContent = user.name || user.id;
-
-    label.append(checkbox, name);
-    participantList.appendChild(label);
-  });
-
-  expensePayer.value = currentId;
-  updateSplitPreview();
-}
-
-function getSelectedParticipants() {
-  return [
-    ...document.querySelectorAll('input[name="expenseParticipant"]:checked'),
-  ].map((input) => input.value);
-}
-
-function updateSplitPreview() {
-  const amount = Number(document.getElementById("expenseAmount").value);
-  const members = getSelectedParticipants();
-
-  if (!Number.isFinite(amount) || amount <= 0 || members.length === 0) {
-    splitPreview.textContent =
-      "Enter an amount and select at least one participant.";
-    return;
+    select.appendChild(option);
   }
 
-  const totalPaise = Math.round((amount + Number.EPSILON) * 100);
-  const shares = splitEqual(totalPaise, members);
-  const firstShare = Object.values(shares)[0] || 0;
+  function showExpenseStatus(message, isError = false) {
+    if (!expenseStatus) return;
 
-  splitPreview.textContent =
-    `Split among ${members.length} participant(s). ` +
-    `Approx. share: ${rupees(firstShare)} per person.`;
-}
-
-document
-  .getElementById("expenseAmount")
-  .addEventListener("input", updateSplitPreview);
-
-participantList.addEventListener("change", updateSplitPreview);
-
-expenseForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-
-  const currentId = getCurrentUserId();
-  const currentUser = users.find((user) => user.id === currentId);
-
-  if (!currentUser) {
-    expenseStatus.textContent = "Please create or select a profile first.";
-    return;
+    expenseStatus.textContent = message;
+    expenseStatus.classList.toggle("error", isError);
+    expenseStatus.classList.toggle("success", !isError && Boolean(message));
   }
 
-  const title = document.getElementById("expenseTitle").value.trim();
-  const amount = Number(document.getElementById("expenseAmount").value);
-  const payer = expensePayer.value;
-  const category = expenseCategory.value;
-  const participants = getSelectedParticipants();
+  function loadExpenseForm(availableUsers = getUsers()) {
+    const currentId = getCurrentUserId();
 
-  if (!title) {
-    expenseStatus.textContent = "Enter an expense name.";
-    return;
-  }
+    addPlaceholder(expenseCategory, "Loading categories...");
+    addPlaceholder(expensePayer, "Loading people...");
 
-  if (!Number.isFinite(amount) || amount <= 0 || amount > 100000000) {
-    expenseStatus.textContent = "Enter a valid amount.";
-    return;
-  }
+    if (participantList) participantList.replaceChildren();
 
-  if (!users.some((user) => user.id === payer)) {
-    expenseStatus.textContent = "Select a valid payer.";
-    return;
-  }
+    if (!Array.isArray(availableUsers) || availableUsers.length === 0) {
+      addPlaceholder(expenseCategory, "Create a profile first");
+      addPlaceholder(expensePayer, "No profiles available");
 
-  if (participants.length === 0) {
-    expenseStatus.textContent = "Select at least one participant.";
-    return;
-  }
+      if (participantList) {
+        const message = document.createElement("p");
+        message.className = "muted empty-state";
+        message.textContent =
+          "Create or load a profile before adding shared expenses.";
+        participantList.appendChild(message);
+      }
 
-  const amountPaise = Math.round((amount + Number.EPSILON) * 100);
+      if (splitPreview) {
+        splitPreview.textContent =
+          "A profile is needed before calculating the split.";
+      }
 
-  if (!Number.isSafeInteger(amountPaise) || amountPaise <= 0) {
-    expenseStatus.textContent = "Invalid amount.";
-    return;
-  }
+      return;
+    }
 
-  const shares = splitEqual(amountPaise, participants);
+    const currentUser = availableUsers.find(
+      (user) => String(user.id) === String(currentId),
+    );
 
-  saveExpenseBtn.disabled = true;
-  expenseStatus.textContent = "Saving expense...";
+    if (!currentUser) {
+      addPlaceholder(expenseCategory, "Select a valid profile");
+      addPlaceholder(expensePayer, "Select a valid profile");
 
-  try {
-    await db.collection("expenses").add({
-      title,
-      amountPaise,
-      payer,
-      category,
-      module: currentUser.primary || "personal",
-      shares,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      if (participantList) {
+        const message = document.createElement("p");
+        message.className = "muted empty-state";
+        message.textContent =
+          "Your current profile could not be found. Please select or create a profile first.";
+        participantList.appendChild(message);
+      }
+
+      if (splitPreview) {
+        splitPreview.textContent =
+          "Select a valid profile to preview the split.";
+      }
+
+      return;
+    }
+
+    // Categories
+    const categories =
+      Array.isArray(currentUser.categories) && currentUser.categories.length > 0
+        ? currentUser.categories
+        : ["Food", "Travel", "Shopping", "Bills", "Other"];
+
+    expenseCategory.replaceChildren();
+
+    categories.forEach((category) => {
+      const option = document.createElement("option");
+      option.value = category;
+      option.textContent = category;
+      expenseCategory.appendChild(option);
     });
 
-    expenseForm.reset();
+    // Payer options and participants
+    expensePayer.replaceChildren();
+    participantList.replaceChildren();
+
+    availableUsers.forEach((user) => {
+      const payerOption = document.createElement("option");
+      payerOption.value = user.id;
+      payerOption.textContent = user.name || user.id;
+      expensePayer.appendChild(payerOption);
+
+      const label = document.createElement("label");
+      label.className = "participant-option";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.value = user.id;
+      checkbox.name = "expenseParticipant";
+      checkbox.checked = String(user.id) === String(currentId);
+
+      const name = document.createElement("span");
+      name.textContent = user.name || user.id;
+
+      label.append(checkbox, name);
+      participantList.appendChild(label);
+    });
+
     expensePayer.value = currentId;
 
-    // Restore the category list and default participant selection.
-    loadExpenseForm(users);
-    expenseStatus.textContent = "Expense saved successfully!";
-  } catch (error) {
-    console.error("Expense save failed:", error);
-    expenseStatus.textContent =
-      "Could not save expense. Check Firestore rules and connection.";
-  } finally {
-    saveExpenseBtn.disabled = false;
     updateSplitPreview();
   }
-});
+
+  function getSelectedParticipants() {
+    if (!participantList) return [];
+
+    return [
+      ...participantList.querySelectorAll(
+        'input[name="expenseParticipant"]:checked',
+      ),
+    ].map((input) => input.value);
+  }
+
+  function formatRupeesFromPaise(paise) {
+    if (typeof window.rupees === "function") {
+      return window.rupees(paise);
+    }
+
+    return (paise / 100).toLocaleString("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 2,
+    });
+  }
+
+  function updateSplitPreview() {
+    if (!splitPreview || !expenseAmount) return;
+
+    const amount = Number(expenseAmount.value);
+    const members = getSelectedParticipants();
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      splitPreview.textContent =
+        "Enter an amount and select at least one participant.";
+      return;
+    }
+
+    if (members.length === 0) {
+      splitPreview.textContent =
+        "Select at least one participant to calculate the split.";
+      return;
+    }
+
+    if (
+      typeof window.splitEqual !== "function" &&
+      typeof splitEqual !== "function"
+    ) {
+      splitPreview.textContent = `Expense shared by ${members.length} participant(s).`;
+      return;
+    }
+
+    const totalPaise = Math.round((amount + Number.EPSILON) * 100);
+
+    const shares =
+      typeof window.splitEqual === "function"
+        ? window.splitEqual(totalPaise, members)
+        : splitEqual(totalPaise, members);
+
+    const firstShare = Object.values(shares)[0] || 0;
+
+    splitPreview.textContent =
+      `Split among ${members.length} participant(s). ` +
+      `Approx. share: ${formatRupeesFromPaise(firstShare)} per person.`;
+  }
+
+  async function handleExpenseSubmit(event) {
+    event.preventDefault();
+
+    const availableUsers = getUsers();
+    const currentId = getCurrentUserId();
+
+    const currentUser = availableUsers.find(
+      (user) => String(user.id) === String(currentId),
+    );
+
+    if (!currentUser) {
+      showExpenseStatus("Please create or select a profile first.", true);
+      return;
+    }
+
+    const title = $("expenseTitle")?.value.trim();
+    const amount = Number(expenseAmount?.value);
+    const payer = expensePayer?.value;
+    const category = expenseCategory?.value;
+    const participants = getSelectedParticipants();
+
+    if (!title) {
+      showExpenseStatus("Enter an expense name.", true);
+      return;
+    }
+
+    if (!Number.isFinite(amount) || amount <= 0 || amount > 100000000) {
+      showExpenseStatus("Enter a valid amount.", true);
+      return;
+    }
+
+    if (!category) {
+      showExpenseStatus("Please select an expense category.", true);
+      return;
+    }
+
+    if (!availableUsers.some((user) => String(user.id) === String(payer))) {
+      showExpenseStatus("Please select a valid payer.", true);
+      return;
+    }
+
+    if (participants.length === 0) {
+      showExpenseStatus("Select at least one participant.", true);
+      return;
+    }
+
+    const amountPaise = Math.round((amount + Number.EPSILON) * 100);
+
+    if (!Number.isSafeInteger(amountPaise) || amountPaise <= 0) {
+      showExpenseStatus("Invalid amount.", true);
+      return;
+    }
+
+    const splitFunction =
+      typeof window.splitEqual === "function"
+        ? window.splitEqual
+        : typeof splitEqual === "function"
+          ? splitEqual
+          : null;
+
+    if (!splitFunction) {
+      showExpenseStatus(
+        "Split calculator is not available. Please check equipay.js.",
+        true,
+      );
+      return;
+    }
+
+    const shares = splitFunction(amountPaise, participants);
+
+    if (!window.db && typeof db === "undefined") {
+      showExpenseStatus(
+        "Firebase database is not initialized. Check firebase-config.js.",
+        true,
+      );
+      return;
+    }
+
+    const database = window.db || (typeof db !== "undefined" ? db : null);
+
+    if (!database) {
+      showExpenseStatus("Database is unavailable.", true);
+      return;
+    }
+
+    if (!window.firebase) {
+      showExpenseStatus("Firebase SDK is unavailable.", true);
+      return;
+    }
+
+    if (saveExpenseBtn) saveExpenseBtn.disabled = true;
+
+    showExpenseStatus("Saving expense...");
+
+    try {
+      await database.collection("expenses").add({
+        title,
+        amountPaise,
+        payer,
+        category,
+        module: currentUser.primary || "personal",
+        shares,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+
+      expenseForm.reset();
+
+      loadExpenseForm(availableUsers);
+
+      showExpenseStatus("Expense saved successfully!");
+
+      if (typeof window.renderDashboard === "function") {
+        window.renderDashboard();
+      }
+
+      if (typeof window.refreshEquipay === "function") {
+        await window.refreshEquipay();
+      }
+    } catch (error) {
+      console.error("Expense save failed:", error);
+
+      showExpenseStatus(
+        "Could not save expense. Check Firestore rules and connection.",
+        true,
+      );
+    } finally {
+      if (saveExpenseBtn) saveExpenseBtn.disabled = false;
+      updateSplitPreview();
+    }
+  }
+
+  function initExpenseForm() {
+    if (
+      !expenseForm ||
+      !expenseCategory ||
+      !expensePayer ||
+      !participantList ||
+      !splitPreview ||
+      !expenseAmount
+    ) {
+      console.error(
+        "Equipay: expense form elements are missing from index.html.",
+      );
+      return;
+    }
+
+    expenseAmount.addEventListener("input", updateSplitPreview);
+    participantList.addEventListener("change", updateSplitPreview);
+    expenseForm.addEventListener("submit", handleExpenseSubmit);
+
+    loadExpenseForm();
+  }
+
+  // Allow app.js to reload the dropdowns after profiles load/change.
+  window.loadExpenseForm = loadExpenseForm;
+  window.updateSplitPreview = updateSplitPreview;
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initExpenseForm);
+  } else {
+    initExpenseForm();
+  }
+})();

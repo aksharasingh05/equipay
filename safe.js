@@ -1,47 +1,91 @@
-// safe.js
+// safe.js  (profile switcher + safe-to-spend breakdown, shown in Developer tools)
 (function () {
-  let users = [],
-    expenses = [],
-    settlements = [];
-  const box = document.getElementById("safeCard");
-  let me = localStorage.getItem("equipay_safe_user") || "";
+  "use strict";
 
-  function render() {
-    if (!users.length) {
-      box.innerHTML = '<p class="muted">No users yet.</p>';
-      return;
+  let users = [];
+  let expenses = [];
+  let settlements = [];
+
+  const esc = (v) =>
+    String(v).replace(
+      /[&<>"']/g,
+      (c) =>
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[c],
+    );
+
+  const getMe = () => sessionStorage.getItem("equipayUserId") || "";
+
+  function switchTo(id) {
+    if (typeof window.setCurrentUser === "function") window.setCurrentUser(id);
+    else {
+      sessionStorage.setItem("equipayUserId", id);
+      window.dispatchEvent(new CustomEvent("equipay:user-changed"));
     }
-    if (!users.find((u) => u.id === me)) me = users[0].id;
-    const u = users.find((x) => x.id === me);
-
-    const net = computeNet(expenses, settlements);
-    const myNet = net[me] || 0;
-    const limit = u.limitPaise || 0;
-    const spent = u.spentPaise || 0;
-    const r = safeToSpend(limit, spent, myNet);
-
-    const cls = r.safe <= 0 ? "bad" : r.safe < limit * 0.2 ? "warn" : "good";
-
-    box.innerHTML = `
-      <label class="muted">Viewing as
-        <select id="safeUser">
-          ${users.map((x) => `<option value="${x.id}" ${x.id === me ? "selected" : ""}>${x.name}</option>`).join("")}
-        </select>
-      </label>
-      <p class="muted" style="margin-bottom:0">Safe to spend</p>
-      <div class="big ${cls}">${rupees(r.safe)}</div>
-      <div class="row"><span>Monthly limit</span><span>${rupees(limit)}</span></div>
-      <div class="row"><span>Spent so far</span><span>− ${rupees(spent)}</span></div>
-      <div class="row"><span>Owed to the flat</span><span>− ${rupees(r.owes)}</span></div>
-      <div class="row muted"><span>Others owe you (not counted)</span><span>${rupees(r.receivable)}</span></div>`;
-
-    document.getElementById("safeUser").onchange = (e) => {
-      me = e.target.value;
-      localStorage.setItem("equipay_safe_user", me);
-      render();
-    };
   }
 
+  function render() {
+    const box = document.getElementById("safeCard");
+    if (!box) return;
+
+    if (!users.length) {
+      box.innerHTML =
+        '<p class="muted">No users yet. Load demo data or create a profile.</p>';
+      return;
+    }
+
+    const me = getMe();
+    const user = users.find((u) => u.id === me);
+
+    const select = `
+      <label class="muted" for="safeUser">Viewing as
+        <select id="safeUser">
+          ${user ? "" : '<option value="" selected>Pick a profile…</option>'}
+          ${users
+            .map(
+              (u) =>
+                `<option value="${esc(u.id)}" ${u.id === me ? "selected" : ""}>${esc(u.name || "Unnamed")}</option>`,
+            )
+            .join("")}
+        </select>
+      </label>`;
+
+    let body = '<p class="muted">Pick a profile to preview their numbers.</p>';
+
+    if (user) {
+      const net = computeNet(expenses, settlements);
+      const limit = Number(user.limitPaise) || 0;
+      const spent = (Number(user.spentPaise) || 0) + myShareSpent(expenses, me);
+      const myNet = Number(net[me]) || 0;
+      const r = {
+        safe: limit - spent,
+        owes: myNet < 0 ? -myNet : 0,
+        receivable: myNet > 0 ? myNet : 0,
+      };
+      const cls = r.safe <= 0 ? "bad" : r.safe < limit * 0.2 ? "warn" : "good";
+
+      body = `
+        <p class="muted" style="margin-bottom:0">Safe to spend</p>
+        <div class="big ${cls}">${rupees(r.safe)}</div>
+        <div class="row"><span>Monthly limit</span><span>${rupees(limit)}</span></div>
+        <div class="row"><span>Spent so far</span><span>− ${rupees(spent)}</span></div>
+        <div class="row"><span>Owed to the group</span><span>− ${rupees(r.owes)}</span></div>
+        <div class="row muted"><span>Others owe you (not counted)</span><span>${rupees(r.receivable)}</span></div>`;
+    }
+
+    box.innerHTML = select + body;
+
+    box.querySelector("#safeUser").addEventListener("change", (e) => {
+      if (e.target.value) switchTo(e.target.value);
+    });
+  }
+
+  window.addEventListener("equipay:user-changed", render);
   listen("users", (d) => {
     users = d;
     render();

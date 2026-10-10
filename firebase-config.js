@@ -1,5 +1,3 @@
-/* firebase-config.js */
-
 const firebaseConfig = {
   apiKey: "AIzaSyDeM5GMJFWmFNDGFDeQdxb0P70XcjjLwS8",
   authDomain: "equipay-5bbe7.firebaseapp.com",
@@ -9,5 +7,10 @@ const firebaseConfig = {
   appId: "1:711668340598:web:cbf41fc9712f16a2cacc57",
 };
 
-firebase.initializeApp(firebaseConfig);
+// Initialize Firebase only once
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+
 const db = firebase.firestore();
+const auth = firebase.auth();
