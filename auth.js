@@ -56,6 +56,7 @@
     if (title) title.textContent = "Welcome to Equipay";
   }
 
+  // Used only by "Continue without logging in"
   function showAppPage() {
     if (typeof window.showPage === "function") {
       window.showPage("dashboard");
@@ -217,9 +218,14 @@
 
       if (user) {
         updateAccountUI(user);
-      }
 
-      showAppPage();
+        // Tell app.js who just logged in. It opens this person's profile,
+        // or sends them to "Create my profile" if they don't have one yet.
+        window.equipayAuthUid = user.uid;
+        window.dispatchEvent(
+          new CustomEvent("equipay:auth-ready", { detail: user }),
+        );
+      }
 
       // Refresh the app after authentication.
       if (typeof window.refreshEquipay === "function") {
@@ -314,10 +320,17 @@
 
     try {
       await auth.signOut();
+      window.equipayAuthUid = null;
+
+      // Forget the selected profile so the next person doesn't see it
+      if (typeof window.setCurrentUser === "function") {
+        window.setCurrentUser(null);
+      }
+
       updateGuestUI();
-      setStatus("You have logged out successfully.");
       showAuthPage();
       setAuthMode(false);
+      setStatus("You have logged out successfully.");
     } catch (error) {
       console.error("Logout failed:", error);
       setStatus(friendlyError(error), true);
@@ -400,7 +413,9 @@
     auth.onAuthStateChanged((user) => {
       if (user) {
         updateAccountUI(user);
+        window.equipayAuthUid = user.uid;
       } else {
+        window.equipayAuthUid = null;
         updateGuestUI();
       }
     });

@@ -122,6 +122,10 @@ function showPage(pageName) {
   });
 
   setText("pageTitle", pageTitles[pageName] || "Equipay");
+  // Developer tools only on the dashboard, and always start each page at the top
+  const dev = byId("developerTools");
+  if (dev) dev.classList.toggle("hidden", pageName !== "dashboard");
+  window.scrollTo({ top: 0, behavior: "instant" });
   closeMobileSidebar();
 
   try {
@@ -142,6 +146,8 @@ function showOnboarding() {
     btn.classList.remove("active");
     btn.removeAttribute("aria-current");
   });
+  byId("developerTools")?.classList.add("hidden");
+  window.scrollTo({ top: 0, behavior: "instant" });
 }
 
 function showDashboard() {
@@ -470,6 +476,11 @@ function startListeners() {
 
     if (!firstLoadDone) {
       firstLoadDone = true;
+      if (pendingAuthUser && firstLoadDone) {
+        const u = pendingAuthUser;
+        pendingAuthUser = null;
+        openProfileForAuthUser(u);
+      }
       if (getSelectedUser()) {
         const hash = location.hash.replace("#", "");
         const target =
@@ -500,5 +511,27 @@ function startListeners() {
     renderDebug();
   });
 }
+
+// When someone logs in, open their own profile, or send them to create one
+function openProfileForAuthUser(authUser) {
+  if (!authUser) return;
+  const mine = users.find((u) => u.authUid === authUser.uid);
+  if (mine) {
+    window.setCurrentUser(mine.id);
+    showPage("dashboard");
+  } else {
+    window.setCurrentUser(null);
+    showOnboarding();
+    window.dispatchEvent(
+      new CustomEvent("equipay:prefill-name", {
+        detail: authUser.displayName || (authUser.email || "").split("@")[0],
+      }),
+    );
+  }
+}
+
+window.addEventListener("equipay:auth-ready", (e) => {
+  openProfileForAuthUser(e.detail);
+});
 
 startListeners();

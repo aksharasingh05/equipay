@@ -3,6 +3,10 @@
   "use strict";
 
   const profileForm = document.getElementById("profileForm");
+  window.addEventListener("equipay:prefill-name", (e) => {
+    const input = document.getElementById("userName");
+    if (input && !input.value) input.value = e.detail || "";
+  });
   const profileStatus = document.getElementById("profileStatus");
   const createProfileBtn = document.getElementById("createProfileBtn");
 
@@ -105,6 +109,7 @@
         spentPaise: 0,
         businessSpentPaise: 0,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        authUid: window.equipayAuthUid || "",
       };
 
       const docRef = await db.collection("users").add(profile);
