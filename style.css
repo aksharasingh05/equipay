@@ -2451,3 +2451,53 @@ textarea::placeholder {
 .participant-option span {
   white-space: nowrap;
 }
+.inst-progress {
+  height: 8px;
+  border-radius: 99px;
+  background: rgba(119, 126, 101, 0.18);
+  overflow: hidden;
+  margin: 6px 0 4px;
+  flex: 1 1 100%;
+}
+.inst-progress > div {
+  height: 100%;
+  background: var(--primary);
+  border-radius: inherit;
+  transition: width 0.3s ease;
+}
+.inst-summary {
+  flex: 1 1 100%;
+  margin: 0 0 6px;
+  font-size: 14px;
+}
+.inst-form,
+.inst-actions {
+  flex: 1 1 100%;
+}
+.inst-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.inst-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.inst-log {
+  flex: 1 1 100%;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--surface-soft);
+}
+.inst-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0;
+  font-size: 14px;
+}

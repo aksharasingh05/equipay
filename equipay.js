@@ -11,6 +11,18 @@ function splitEqual(total, ids) {
   return shares;
 }
 
+// How much of a settlement counts as settled.
+// includePaid = also count installments that are paid but not yet confirmed.
+function settledAmount(s, includePaid) {
+  if (s.status === "confirmed") return Number(s.amountPaise) || 0;
+  if (s.status === "paid" && includePaid) return Number(s.amountPaise) || 0; // older full-payment records
+  return (Array.isArray(s.installments) ? s.installments : [])
+    .filter(
+      (i) => i.status === "confirmed" || (includePaid && i.status === "paid"),
+    )
+    .reduce((t, i) => t + (Number(i.amountPaise) || 0), 0);
+}
+
 // net: userId -> paise (positive = is owed money, negative = owes money)
 function computeNet(expenses, settlements) {
   const net = {};
@@ -21,15 +33,15 @@ function computeNet(expenses, settlements) {
     add(e.payer, e.amountPaise);
     Object.entries(e.shares).forEach(([uid, p]) => add(uid, -p));
   });
-  settlements
-    .filter((s) => s.status === "confirmed")
-    .forEach((s) => {
-      add(s.from, s.amountPaise);
-      add(s.to, -s.amountPaise);
-    });
+  settlements.forEach((s) => {
+    const amt = settledAmount(s, false);
+    if (amt > 0) {
+      add(s.from, amt);
+      add(s.to, -amt);
+    }
+  });
   return net;
 }
-
 // Greedy: largest debtor pays largest creditor. Gives at most n-1 payments.
 function simplify(net) {
   const cred = [],

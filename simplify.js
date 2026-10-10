@@ -26,10 +26,14 @@
 
     const name = (id) => esc((users.find((u) => u.id === id) || {}).name || id);
 
-    // Payments marked "paid" already count as settled, so Simplify never duplicates them.
-    const effective = settlements.map((s) =>
-      s.status === "paid" ? { ...s, status: "confirmed" } : s,
-    );
+    // Count everything already paid (confirmed or not) so Simplify never duplicates it
+    const effective = settlements
+      .map((s) => ({
+        ...s,
+        status: "confirmed",
+        amountPaise: settledAmount(s, true),
+      }))
+      .filter((s) => s.amountPaise > 0);
     const net = computeNet(expenses, effective);
     const before = pairwiseDebts(expenses);
     const after = simplify(net);
@@ -62,7 +66,24 @@
         // Replace only unpaid suggestions; keep paid and confirmed history.
         settlements
           .filter((s) => s.status === "pending")
-          .forEach((s) => batch.delete(db.collection("settlements").doc(s.id)));
+          .forEach((s) => {
+            const ref = db.collection("settlements").doc(s.id);
+            const inst = Array.isArray(s.installments) ? s.installments : [];
+            if (!inst.length) {
+              batch.delete(ref); // untouched suggestion: replace it
+            } else {
+              // partly paid: close it at what was already paid; the rest is recreated below
+              const paid = inst.reduce(
+                (t, i) => t + (Number(i.amountPaise) || 0),
+                0,
+              );
+              const allConfirmed = inst.every((i) => i.status === "confirmed");
+              batch.update(ref, {
+                amountPaise: paid,
+                status: allConfirmed ? "confirmed" : "pending",
+              });
+            }
+          });
         after.forEach((p) =>
           batch.set(db.collection("settlements").doc(), {
             from: p.from,
